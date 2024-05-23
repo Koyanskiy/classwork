@@ -1,183 +1,57 @@
-"""code"""
-import asyncio
-from aiogram import Bot, Dispatcher, Router, F
-from aiogram.types import Message, BotCommand, InlineKeyboardMarkup, InlineKeyboardButton, \
-   CallbackQuery
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-bot = Bot(token="6627111140:AAEu5m5sliiFQjlixZW94S29n8Jtfh3yQDc")
-dp = Dispatcher()
-router = Router()
-
-class Anketa(StatesGroup):
-    """state"""
-    name = State()
-    age = State()
-    gender = State()
-
-@router.message(Command("anketa"))
-async def anketa_handler(msg: Message, state: FSMContext):
-    """anketahandler"""
-    await state.set_state(Anketa.name)
-    markup = InlineKeyboardMarkup(inline_keyboard=[[
-      InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa')
-   ]])
-    await msg.answer('Введите ваше имя:', reply_markup=markup)
-
-@router.message(Command("anketa"))
-async def cancel_handler(callbac_query: CallbackQuery, state: FSMContext):
-    """anketahandler"""
-    await state.clear()
-    await callbac_query.message.answer('Регистрация отменена')
-
-@router.message(Anketa.name)
-async def set_age_anketa_handler(msg: Message, state: FSMContext):
-    """anketahandlersetage"""
-    await state.update_data(name=msg.text)
-    await state.set_state(Anketa.age)
-    markup = InlineKeyboardMarkup(inline_keyboard=[[
-      InlineKeyboardButton(text='Назад', callback_data='back_anketa'),
-      InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa'),
-   ]])
-    await msg.answer('Введите ваш возраст: ', reply_markup=markup)
-
-@router.message(Anketa.age)
-async def set_age_by_anketa_handler(msg: Message, state: FSMContext):
-    """anketahandlersetage"""
-    try:
-        await state.update_data(age=int(msg.text))
-    except ValueError:
-        await msg.answer('Вы неверно ввели возраст')
-        markup = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text='Назад', callback_data='back_anketa'),
-        InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa'),
-   ]])
-        await msg.answer('Введите ваш возраст: ', reply_markup=markup)
-        return
-
-    await state.set_state(Anketa.gender)
-    markup = InlineKeyboardMarkup(inline_keyboard=[
-      [
-         InlineKeyboardButton(text='Назад', callback_data='back_anketa'),
-         InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa'),
-      ],[
-         InlineKeyboardButton(text='Мужской', callback_data='gender_m'),
-         InlineKeyboardButton(text='Женский', callback_data='gender_w'),
-   ]])
-    await msg.answer("Введите ваш пол", reply_markup=markup)
-
-@router.callback_query(F.data == 'back_anketa')
-async def set_age_anketa_handler(callback_query: CallbackQuery, state: FSMContext):
-    """anketahandlersetage"""
-    current_state = await state.get_state()
-    if current_state == Anketa.gender:
-        await state.set_state(Anketa.age)
-        markup = InlineKeyboardMarkup(inline_keyboard=[[
-         InlineKeyboardButton(text='Назад', callback_data='back_anketa'),
-         InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa'),
-      ]])
-        await callback_query.message.answer('Введите ваш возраст', reply_markup=markup)
-
-    elif current_state == Anketa.age:
-        await state.set_state(Anketa.name)
-        markup = InlineKeyboardMarkup(inline_keyboard=[[
-         InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa')
-      ]])
-        await callback_query.message.answer('Введите ваше имя', reply_markup=markup)
-
-@router.callback_query(F.data.startswith('gender_') and Anketa.gender)
-async def set_age_anketa_handler(callback_query: CallbackQuery, state: FSMContext):
-    """anketahandlersetage"""
-    gender = {'gender_m': 'Мужской', 'gender_w': 'Женский'}[callback_query.data]
-    await state.update_data(gender=gender)
-    await callback_query.message.answer(str(await state.get_data()))
-    await state.clear()
-
-@router.message(Anketa. gender)
-async def set_age_by_anketa_handler(msg: Message):
-    """anketahandlersetage"""
-    await msg.answer("Нужно нажать кнопку")
-
-@router.message(Command('start'))
-async def any_message(message: Message):
-    """anymessage"""
-    await message.answer(
-        "Привет!\nЯ Жанна!\nОтправь мне любое сообщение, а я тебе обязательно отвечу")
-
-@router.message(Command("start"))
-async def start_handler(msg: Message):
-    """starthandler"""
-    await bot.set_my_commands([
-      BotCommand(command="start", description="Запуск бота"),
-      BotCommand(command="anketa", description="Справка"),
-      BotCommand(command="delete", description="Очитстить"),
-   ])
-
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=[
-      [InlineKeyboardButton(text="Далее", callback_data='next')]
-   ])
-    await msg.answer(text="1", reply_markup=inline_markup)
-
-@router.callback_query(F.data == 'next')
-async def next_handler(callback_query: CallbackQuery):
-    """nexthandler"""
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=[
-      [InlineKeyboardButton(text="Назад", callback_data='back')]
-   ])
-    await callback_query.message.edit_text(
-      "2", reply_markup=inline_markup)
+# подключаем модуль для Телеграма
+import telebot
+import requests
 
 
-@router.message(Command('start'))
-async def start_handler(msg:Message):
-    """starthandler"""
-    await bot.set_my_commands([
-        BotCommand(command='start', description = "Запуск"),
-        BotCommand(command='help', description = "Справка"),
-        BotCommand(command='delete', description = "Очистить"),
-   ])
+# указываем токен для доступа к боту
+bot = telebot.TeleBot('6627111140:AAEu5m5sliiFQjlixZW94S29n8Jtfh3yQDc')
 
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=[
-      [InlineKeyboardButton(text='Далее', callback_data='next')]
-   ])
-    await msg.answer(text="1", reply_markup=inline_markup)
+# приветственный текст
+start_txt = 'Привет! Это бот прогноза погоды. \n\nОтправьте боту название города и он скажет, какая там температура и как она ощущается.'
 
-@router.callback_query(F.data == 'next')
-async def next_handler(callback_query: CallbackQuery):
-    """nexthandler"""
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=[
-      [InlineKeyboardButton(text='Назад', callback_data='back')]
-   ])
-    await callback_query.message.edit_text(
-      '2', reply_markup=inline_markup)
 
-@router.callback_query(F.data == 'set_age_anketa')
-async def set_age_anketa_handler(callback_query: CallbackQuery, state: FSMContext):
-    """anketahandlersetage"""
-    await state.set_state(Anketa.age)
-    markup = InlineKeyboardMarkup(inline_keyboard=[[
-      InlineKeyboardButton(text='Назад', callback_data='set_name_anketa'),
-      InlineKeyboardButton(text='Отмена', callback_data='cancel_anketa')
-   ]])
-    await callback_query.message.answer('Введите ваш возраст: ', reply_markup=markup)
+# обрабатываем старт бота
+@bot.message_handler(commands=['start'])
+def start(message):
+    # выводим приветственное сообщение
+    bot.send_message(message.from_user.id, start_txt, parse_mode='Markdown')
 
-@router.callback_query(F.data == 'back')
-async def next_handler(callback_query: CallbackQuery):
-    """nexthandler"""
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=[
-      [InlineKeyboardButton(text='Далее', callback_data='next')]
-   ])
-    await callback_query.message.delete()
-    await callback_query.message.answer(
-      text="1",
-      reply_markup=inline_markup)
+# обрабатываем любой текстовый запрос
+@bot.message_handler(content_types=['text'])
+def weather(message):
+    # получаем город из сообщения пользователя
+  city = message.text
+  # формируем запрос
+  url = 'https://api.openweathermap.org/data/2.5/weather?q='+city+'&units=metric&lang=ru&appid=79d1ca96933b0328e1c7e3e7a26cb347'
+  # отправляем запрос на сервер и сразу получаем результат
+  weather_data = requests.get(url).json()
+  print(weather_data)
+  # получаем данные о температуре и о том, как она ощущается
+  temperature = round(weather_data['main']['temp'])
+  temperature_feels = round(weather_data['main']['feels_like'])
+  # формируем ответы
+  w_now = 'Сейчас в городе ' + city + ' ' + str(temperature) + ' °C'
+  w_feels = 'Ощущается как ' + str(temperature_feels) + ' °C'
+  # отправляем значения пользователю
+  bot.send_message(message.from_user.id, w_now)
+  bot.send_message(message.from_user.id, w_feels)
+  # сообщаем про ветреную погоду
+  wind_speed = round(weather_data['wind']['speed'])
+  if wind_speed < 5:
+      bot.send_message(message.from_user.id, '✅ Погода хорошая, ветра почти нет')
+  elif wind_speed < 10:
+      bot.send_message(message.from_user.id, '🤔 На улице ветрено, оденьтесь чуть теплее')
+  elif wind_speed < 20:
+      bot.send_message(message.from_user.id, '❗️ Ветер очень сильный, будьте осторожны, выходя из дома')
+  else:
+      bot.send_message(message.from_user.id, '❌ На улице шторм, на улицу лучше не выходить')
 
-async def main():
-    """startpolling"""
-    await dp.start_polling(bot)
-
-dp.include_routers(router)
-
+# запускаем бота
 if __name__ == '__main__':
-    asyncio.run(main())
+    while True:
+        # в бесконечном цикле постоянно опрашиваем бота — есть ли новые сообщения
+        try:
+            bot.polling(none_stop=True, interval=0)
+        # если возникла ошибка — сообщаем про исключение и продолжаем работу
+        except Exception as e:
+            print('❌❌❌❌❌ Сработало исключение! ❌❌❌❌❌')
