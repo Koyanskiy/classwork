@@ -1,10 +1,9 @@
 # подключаем модуль для Телеграма
 import telebot
 import requests
-
-
+from filter import my_list_lower
 # указываем токен для доступа к боту
-bot = telebot.TeleBot('6627111140:AAEu5m5sliiFQjlixZW94S29n8Jtfh3yQDc')
+bot = telebot.TeleBot('7193682555:AAEbL_SNi8tCYZGaHJ2YuD4_I_5ZPFewuII')
 
 # приветственный текст
 start_txt = 'Привет! Это бот прогноза погоды. \n\nОтправьте боту название города и он скажет, какая там температура и как она ощущается.'
@@ -18,33 +17,45 @@ def start(message):
 
 # обрабатываем любой текстовый запрос
 @bot.message_handler(content_types=['text'])
+# обрабатываем любой текстовый запрос
+@bot.message_handler(content_types=['text'])
 def weather(message):
     # получаем город из сообщения пользователя
-  city = message.text
+    city = message.text
+    city = city.lower()
+    # добавляем список исключений
+    exclusion_list = my_list_lower  # замените на реальные слова-исключения
+    # проверяем, содержит ли сообщение хотя бы одно из исключений
+    if any(word in city for word in exclusion_list):
+        # если содержит, отправляем пользователю ошибку
+        bot.send_message(message.from_user.id, 'Ошибка: это страна, а не город дурачек)')
+    else:
+        # если не содержит, продолжаем выполнение кода
+        # формируем запрос и остальные действия
   # формируем запрос
-  url = 'https://api.openweathermap.org/data/2.5/weather?q='+city+'&units=metric&lang=ru&appid=79d1ca96933b0328e1c7e3e7a26cb347'
+        url = 'https://api.openweathermap.org/data/2.5/weather?q='+city+'&units=metric&lang=ru&appid=79d1ca96933b0328e1c7e3e7a26cb347'
   # отправляем запрос на сервер и сразу получаем результат
-  weather_data = requests.get(url).json()
-  print(weather_data)
-  # получаем данные о температуре и о том, как она ощущается
-  temperature = round(weather_data['main']['temp'])
-  temperature_feels = round(weather_data['main']['feels_like'])
-  # формируем ответы
-  w_now = 'Сейчас в городе ' + city + ' ' + str(temperature) + ' °C'
-  w_feels = 'Ощущается как ' + str(temperature_feels) + ' °C'
+    weather_data = requests.get(url).json()
+    print(weather_data)
+    # получаем данные о температуре и о том, как она ощущается
+    temperature = round(weather_data['main']['temp'])
+    temperature_feels = round(weather_data['main']['feels_like'])
+    # формируем ответы
+    w_now = 'Сейчас в городе ' + city + ' ' + str(temperature) + ' °C'
+    w_feels = 'Ощущается как ' + str(temperature_feels) + ' °C'
   # отправляем значения пользователю
-  bot.send_message(message.from_user.id, w_now)
-  bot.send_message(message.from_user.id, w_feels)
+    bot.send_message(message.from_user.id, w_now)
+    bot.send_message(message.from_user.id, w_feels)
   # сообщаем про ветреную погоду
-  wind_speed = round(weather_data['wind']['speed'])
-  if wind_speed < 5:
-      bot.send_message(message.from_user.id, '✅ Погода хорошая, ветра почти нет')
-  elif wind_speed < 10:
-      bot.send_message(message.from_user.id, '🤔 На улице ветрено, оденьтесь чуть теплее')
-  elif wind_speed < 20:
-      bot.send_message(message.from_user.id, '❗️ Ветер очень сильный, будьте осторожны, выходя из дома')
-  else:
-      bot.send_message(message.from_user.id, '❌ На улице шторм, на улицу лучше не выходить')
+    wind_speed = round(weather_data['wind']['speed'])
+    if wind_speed < 5:
+        bot.send_message(message.from_user.id, '✅ Погода хорошая, ветра почти нет')
+    elif wind_speed < 10:
+        bot.send_message(message.from_user.id, '🤔 На улице ветрено, оденьтесь чуть теплее')
+    elif wind_speed < 20:
+        bot.send_message(message.from_user.id, '❗️ Ветер очень сильный, будьте осторожны, выходя из дома')
+    else:
+        bot.send_message(message.from_user.id, '❌ На улице шторм, на улицу лучше не выходить')
 
 # запускаем бота
 if __name__ == '__main__':
