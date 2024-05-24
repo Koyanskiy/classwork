@@ -12,6 +12,7 @@ start_txt = 'Привет! Это бот прогноза погоды. \n\nОт
 # обрабатываем старт бота
 @bot.message_handler(commands=['start'])
 def start(message):
+
     # выводим приветственное сообщение
     bot.send_message(message.from_user.id, start_txt, parse_mode='Markdown')
 
@@ -22,6 +23,7 @@ def start(message):
 def weather(message):
     # получаем город из сообщения пользователя
     city = message.text
+    #меняем регистр сообщения на нижний
     city = city.lower()
     # добавляем список исключений
     exclusion_list = my_list_lower  # замените на реальные слова-исключения
